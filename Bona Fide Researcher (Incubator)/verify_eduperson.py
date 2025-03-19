@@ -48,8 +48,14 @@ def main():
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
     verification_modules = [crossref_verification_module]
 
+    search_results = []
     for verification_module in verification_modules:
-        verification_module.verify(researcher)
+        search_results += verification_module.verify(researcher)
+
+    researcher.search_results = search_results
+    researcher.rank_results()
+    researcher.sort_results()
+    researcher.print_search_results(args.verbose)
 
 if __name__ == '__main__':
     main()

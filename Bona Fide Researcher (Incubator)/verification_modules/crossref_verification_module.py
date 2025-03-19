@@ -1,9 +1,12 @@
 from abc import ABC
 from http import HTTPStatus
+from typing import List
 
 import requests
 
+from models.author import Author
 from models.researcher import Researcher
+from models.search_result import SearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
@@ -24,32 +27,44 @@ class CrossrefVerificationModule(BaseVerificationModule):
             print(f"Publisher: {item.get("publisher", "?")}")
             print("----------------------------------------")
 
-    def filter_results(self, unfiltered_items, researcher: Researcher):
+    def filter_results(self, unfiltered_items, researcher: Researcher) -> List[SearchResult]:
         filtered_items = []
         given_name, surname = researcher.given_name, researcher.surname
 
         for item in unfiltered_items:
             authors = item.get("author", [])
             matched_author = None
+            author_objects = []
 
             for author in authors:
+                author_object = Author(author.get("given"), author.get("family"), author.get("affiliation"))
+                author_objects.append(author_object)
+
                 default_value = str(object())  # Comparison with any string is possible and always returns False
                 # Certain name order filtering
                 has_regular_name_match = author.get("given", default_value) in given_name and author.get("family", default_value) in surname
                 # Uncertain name order filtering (flip given name and surname)
                 has_flipped_name_match = author.get("given", default_value) in surname and author.get("family", default_value) in given_name
                 if has_regular_name_match or (researcher.has_uncertain_name_order and has_flipped_name_match):
-                    matched_author = author
-                    break
+                    matched_author = author_object
+
+
 
             if matched_author:
-                item["matched_author"] = matched_author
-                filtered_items.append(item)
+                search_result = SearchResult(matched_author,
+                                             author_objects,
+                                             item.get("DOI"),
+                                             item.get("URL"),
+                                             item.get("title"),
+                                             item.get("institution"),
+                                             item.get("publisher"),
+                                             item)
+                filtered_items.append(search_result)
 
 
         return filtered_items
 
-    def get_researcher_info(self, researcher: Researcher):
+    def get_researcher_info(self, researcher: Researcher) -> List[SearchResult]:
 
         result_items = []
         cursor = "*"
@@ -75,15 +90,12 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 has_all_items = len(current_items) < self.requested_rows_count
 
         filtered_result_items = self.filter_results(result_items, researcher)
-        print("Obtained general info:")
+        print("Obtained researcher info from Crossref")
 
-        if self.verbose:
-            print(filtered_result_items)
-        else:
-            self.print_reduced_result(filtered_result_items)
+        return filtered_result_items
 
 
-    def verify(self, researcher: Researcher) -> None:
+    def verify(self, researcher: Researcher) -> List[SearchResult]:
         print("Extracting researcher information from Crossref")
 
         if not researcher.given_name:
@@ -94,4 +106,4 @@ class CrossrefVerificationModule(BaseVerificationModule):
             print(f"Missing researcher last name, skipping '{self.module_name}'")
             return
 
-        self.get_researcher_info(researcher)
+        return self.get_researcher_info(researcher)
