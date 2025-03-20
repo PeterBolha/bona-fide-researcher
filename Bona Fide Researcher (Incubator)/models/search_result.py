@@ -1,6 +1,7 @@
 from typing import Any, List
 
 from models.author import Author
+from models.researcher import Researcher
 
 
 class SearchResult:
@@ -24,8 +25,21 @@ class SearchResult:
         return self.internal_rank == other.internal_rank
 
     # TODO - implement rank calculation
-    def calculate_internal_rank(self):
+    def calculate_internal_rank(self, researcher_candidate: Researcher):
         self.internal_rank = 0
+
+        # award a point for the presence of these attributes
+        attributes = ['doi', 'url', 'title', 'institution', 'publisher']
+
+        for attr in attributes:
+            if getattr(self, attr):
+                self.internal_rank += 1
+
+        # TODO - name & surname match given order
+        # TODO - name & surname match exactly without accents
+        # TODO - name & surname match exactly with accents
+
+
 
     def print(self, verbose: bool = False):
         print("----------------------------------------")

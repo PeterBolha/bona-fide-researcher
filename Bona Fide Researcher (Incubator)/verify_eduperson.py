@@ -1,5 +1,6 @@
 import argparse
 
+from models.search_results_aggregator import SearchResultsAggregator
 from models.researcher import Researcher
 from verification_modules.crossref_verification_module import \
     CrossrefVerificationModule
@@ -48,14 +49,12 @@ def main():
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
     verification_modules = [crossref_verification_module]
 
-    search_results = []
-    for verification_module in verification_modules:
-        search_results += verification_module.verify(researcher)
+    search_results_aggregator = SearchResultsAggregator(researcher)
 
-    researcher.search_results = search_results
-    researcher.rank_results()
-    researcher.sort_results()
-    researcher.print_search_results(args.verbose)
+    for verification_module in verification_modules:
+        search_results_aggregator.search_results += verification_module.verify(researcher)
+
+    search_results_aggregator.present_search_results()
 
 if __name__ == '__main__':
     main()
