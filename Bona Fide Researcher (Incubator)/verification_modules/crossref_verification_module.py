@@ -14,6 +14,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
     def __init__(self, verbose: bool = False):
         super().__init__(verbose)
         self.module_name = "Crossref Verification Module"
+        self._CROSSREF_API_URL = "https://api.crossref.org/works"
         self.requested_rows_count = 1000
 
     def print_reduced_result(self, result_items):
@@ -77,7 +78,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 "cursor": cursor,
                 "rows": self.requested_rows_count,
             }
-            response = requests.get('https://api.crossref.org/works', params=params)
+            response = requests.get(self._CROSSREF_API_URL, params=params)
             response_data = response.json()
 
             if response.status_code != HTTPStatus.OK:
