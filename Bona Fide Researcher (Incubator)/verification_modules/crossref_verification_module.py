@@ -100,10 +100,10 @@ class CrossrefVerificationModule(BaseVerificationModule):
 
         if not researcher.given_name:
             print(f"Missing researcher first name, skipping '{self.module_name}'")
-            return
+            return []
 
         if not researcher.surname:
             print(f"Missing researcher last name, skipping '{self.module_name}'")
-            return
+            return []
 
         return self.get_researcher_info(researcher)
