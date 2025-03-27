@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 import requests
 
-from api_tests.researcher import Researcher
+from models.researcher import Researcher
 
 FIRST_NAME = "Mihály"
 LAST_NAME = "Héder"
