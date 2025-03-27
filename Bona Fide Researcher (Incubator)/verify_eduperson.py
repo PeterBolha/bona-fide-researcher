@@ -49,7 +49,7 @@ def main():
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
     verification_modules = [crossref_verification_module]
 
-    search_results_aggregator = SearchResultsAggregator(researcher)
+    search_results_aggregator = SearchResultsAggregator(researcher, args.verbose)
 
     for verification_module in verification_modules:
         search_results_aggregator.search_results += verification_module.verify(researcher)

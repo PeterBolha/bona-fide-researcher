@@ -1,5 +1,6 @@
 from typing import Any, List
 
+from models import author
 from models.author import Author
 from models.researcher import Researcher
 
@@ -24,21 +25,23 @@ class SearchResult:
     def __eq__(self, other):  # Needed for full sorting support
         return self.internal_rank == other.internal_rank
 
-    # TODO - implement rank calculation
     def calculate_internal_rank(self, researcher_candidate: Researcher):
         self.internal_rank = 0
+
+        # TODO - reevaluate these metrics
+        author_name_match_ratio = self.matched_author.name_match_ratio
+        attribute_rank_value = 0.05 * author_name_match_ratio
+        self.internal_rank += author_name_match_ratio
 
         # award a point for the presence of these attributes
         attributes = ['doi', 'url', 'title', 'institution', 'publisher']
 
         for attr in attributes:
             if getattr(self, attr):
-                self.internal_rank += 1
+                self.internal_rank += attribute_rank_value
 
-        # TODO - name & surname match given order
-        # TODO - name & surname match exactly without accents
-        # TODO - name & surname match exactly with accents
-
+        if self.matched_author.affiliation:
+            self.internal_rank += attribute_rank_value
 
 
     def print(self, verbose: bool = False):
@@ -50,9 +53,9 @@ class SearchResult:
         else:
             print("Matched author:")
             print(self.matched_author)
-            print("All authors:")
-            for author in self.authors:
-                print(author)
+            # print("All authors:")
+            # for author in self.authors:
+            #     print(author)
             print(f"DOI: {self.doi or "?"}")
             print(f"URL: {self.url or "?"}")
             print(f"Title: {self.title or "?"}")

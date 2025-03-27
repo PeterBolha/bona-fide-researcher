@@ -5,6 +5,7 @@ from typing import List
 import requests
 
 from models.author import Author
+from models.name_matcher import NameMatcher
 from models.researcher import Researcher
 from models.search_result import SearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
@@ -15,6 +16,8 @@ class CrossrefVerificationModule(BaseVerificationModule):
         super().__init__(verbose)
         self.module_name = "Crossref Verification Module"
         self._CROSSREF_API_URL = "https://api.crossref.org/works"
+        # critical threshold for which name is considered a match (X out of 100)
+        self._NAME_MATCH_THRESHOLD = 65
         self.requested_rows_count = 1000
 
     def print_reduced_result(self, result_items):
@@ -30,7 +33,9 @@ class CrossrefVerificationModule(BaseVerificationModule):
 
     def filter_results(self, unfiltered_items, researcher: Researcher) -> List[SearchResult]:
         filtered_items = []
-        given_name, surname = researcher.given_name, researcher.surname
+        target_given_name, target_surname = researcher.given_name, researcher.surname
+        # TODO - better format, maybe add as an input parameter
+        name_match_threshold = 150
 
         for item in unfiltered_items:
             authors = item.get("author", [])
@@ -40,13 +45,13 @@ class CrossrefVerificationModule(BaseVerificationModule):
             for author in authors:
                 author_object = Author(author.get("given"), author.get("family"), author.get("affiliation"))
                 author_objects.append(author_object)
+                name_matcher = NameMatcher(researcher.has_uncertain_name_order)
 
-                default_value = str(object())  # Comparison with any string is possible and always returns False
-                # Certain name order filtering
-                has_regular_name_match = author.get("given", default_value) in given_name and author.get("family", default_value) in surname
-                # Uncertain name order filtering (flip given name and surname)
-                has_flipped_name_match = author.get("given", default_value) in surname and author.get("family", default_value) in given_name
-                if has_regular_name_match or (researcher.has_uncertain_name_order and has_flipped_name_match):
+                candidate_given_name = author.get("given", "")
+                candidate_surname = author.get("family", "")
+                name_match_ratio = name_matcher.get_name_match_ratio(candidate_given_name, candidate_surname, target_given_name, target_surname)
+                if name_match_ratio >= name_match_threshold:
+                    author_object.name_match_ratio = name_match_ratio
                     matched_author = author_object
 
 

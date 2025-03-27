@@ -12,7 +12,7 @@ class SearchResultsAggregator:
             result.calculate_internal_rank(self.researcher)
 
     def _sort_results(self):
-        self.search_results = sorted(self.search_results)
+        self.search_results = sorted(self.search_results, reverse=True)
 
     def _print_search_results(self):
         for result in self.search_results:
