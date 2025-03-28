@@ -1,6 +1,6 @@
 from typing import List
 
-
+# Crossref API Entity
 class Author:
     def __init__(self, given_name: str, surname: str, affiliation: List[str]) -> None:
         self.given_name = given_name

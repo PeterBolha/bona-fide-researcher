@@ -37,6 +37,7 @@ def main():
     parser.add_argument("-sn", "--surname", type=str, help="Surname of the person to be verified")
     parser.add_argument("-e", "--email", type=str, help="Email address of the person to be verified")
     parser.add_argument("-o", "--orcid", type=str, help="ORCID identifier of the person to be verified")
+    parser.add_argument("-a", "--affiliation", type=str, help="(Institutional) Affiliation of the person to be verified")
 
     # switches
     parser.add_argument("-u", "--uncertain-name-order", action="store_true", help="Add when uncertain which name is the given name and which is the surname. Given name and Surname will be treated interchangeably.")
@@ -45,7 +46,7 @@ def main():
     args = parser.parse_args()
     print_args_overview(args)
 
-    researcher = Researcher(args.given_name, args.surname, args.email, args.orcid, args.uncertain_name_order)
+    researcher = Researcher(args.given_name, args.surname, args.email, args.orcid, args.affiliation, args.uncertain_name_order)
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
     verification_modules = [crossref_verification_module]
 

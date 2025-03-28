@@ -41,6 +41,8 @@ class SearchResult:
                 self.internal_rank += attribute_rank_value
 
         if self.matched_author.affiliation:
+            # TODO make affiliation match affect ranking
+            # researcher_candidate.affiliation = self.matched_author.affiliation
             self.internal_rank += attribute_rank_value
 
 
