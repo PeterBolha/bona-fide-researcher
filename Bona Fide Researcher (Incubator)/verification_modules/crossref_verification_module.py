@@ -1,4 +1,3 @@
-from abc import ABC
 from http import HTTPStatus
 from typing import List
 
@@ -7,7 +6,7 @@ import requests
 from models.author import Author
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher
-from models.search_result import SearchResult
+from models.crossref_search_result import CrossrefSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
@@ -31,7 +30,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
             print(f"Publisher: {item.get("publisher", "?")}")
             print("----------------------------------------")
 
-    def filter_results(self, unfiltered_items, researcher: Researcher) -> List[SearchResult]:
+    def filter_results(self, unfiltered_items, researcher: Researcher) -> List[CrossrefSearchResult]:
         filtered_items = []
         target_given_name, target_surname = researcher.given_name, researcher.surname
         # TODO - better format, maybe add as an input parameter
@@ -57,20 +56,20 @@ class CrossrefVerificationModule(BaseVerificationModule):
 
 
             if matched_author:
-                search_result = SearchResult(matched_author,
-                                             author_objects,
-                                             item.get("DOI"),
-                                             item.get("URL"),
-                                             item.get("title"),
-                                             item.get("institution"),
-                                             item.get("publisher"),
-                                             item)
+                search_result = CrossrefSearchResult(matched_author,
+                                                     author_objects,
+                                                     item.get("DOI"),
+                                                     item.get("URL"),
+                                                     item.get("title"),
+                                                     item.get("institution"),
+                                                     item.get("publisher"),
+                                                     item)
                 filtered_items.append(search_result)
 
 
         return filtered_items
 
-    def get_researcher_info(self, researcher: Researcher) -> List[SearchResult]:
+    def get_researcher_info(self, researcher: Researcher) -> List[CrossrefSearchResult]:
 
         result_items = []
         cursor = "*"
@@ -101,7 +100,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
         return filtered_result_items
 
 
-    def verify(self, researcher: Researcher) -> List[SearchResult]:
+    def verify(self, researcher: Researcher) -> List[CrossrefSearchResult]:
         print("Extracting researcher information from Crossref")
 
         if not researcher.given_name:

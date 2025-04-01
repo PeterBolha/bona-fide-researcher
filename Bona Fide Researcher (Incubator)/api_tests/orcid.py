@@ -21,6 +21,8 @@ def get_general_info():
              f"email:{RESEARCHER_MIHALY.email} OR "
              f"current-institution-affiliation-name:{RESEARCHER_MIHALY} OR "
              f"past-institution-affiliation-name:{AFFILIATION}",
+        "start": 0,
+        "rows": 1000
     }
     headers = {"Accept": "application/json"}
 

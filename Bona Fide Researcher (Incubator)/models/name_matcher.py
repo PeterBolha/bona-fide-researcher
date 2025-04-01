@@ -10,6 +10,9 @@ class NameMatcher:
         self._NAME_INITIAL_REGEX = re.compile(r"^[^.]\.?$")
 
     def get_name_match_ratio(self, candidate_given_name: str, candidate_surname: str, target_given_name: str, target_surname: str) -> float:
+        if not candidate_given_name or not candidate_surname or not target_given_name or not target_surname:
+            return 0
+
         combined_max_match_ratio = 0
 
         given_name_match_ratio = fuzz.ratio(candidate_given_name, target_given_name)

@@ -4,6 +4,8 @@ from models.search_results_aggregator import SearchResultsAggregator
 from models.researcher import Researcher
 from verification_modules.crossref_verification_module import \
     CrossrefVerificationModule
+from verification_modules.orcid_verification_module import \
+    OrcidVerificationModule
 
 
 def print_args_overview(args):
@@ -48,7 +50,8 @@ def main():
 
     researcher = Researcher(args.given_name, args.surname, args.email, args.orcid, args.affiliation, args.uncertain_name_order)
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
-    verification_modules = [crossref_verification_module]
+    orcid_verification_module = OrcidVerificationModule(args.verbose)
+    verification_modules = [crossref_verification_module, orcid_verification_module]
 
     search_results_aggregator = SearchResultsAggregator(researcher, args.verbose)
 
