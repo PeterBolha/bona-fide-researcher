@@ -4,9 +4,10 @@ from typing import List
 import requests
 
 from models.author import Author
+from models.crossref_search_result import CrossrefSearchResult
+from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher
-from models.crossref_search_result import CrossrefSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
@@ -30,11 +31,14 @@ class CrossrefVerificationModule(BaseVerificationModule):
             print(f"Publisher: {item.get("publisher", "?")}")
             print("----------------------------------------")
 
-    def filter_results(self, unfiltered_items, researcher: Researcher) -> List[CrossrefSearchResult]:
+    def filter_results(self, unfiltered_items, researcher: Researcher) -> List[
+        CrossrefSearchResult]:
         filtered_items = []
-        target_given_name, target_surname = researcher.given_name, researcher.surname
+        target_given_name, target_surname = (researcher.given_name,
+                                             researcher.surname)
         # TODO - better format, maybe add as an input parameter
-        name_match_threshold = 150
+        # given name + surname maximum
+        name_match_threshold = self._NAME_MATCH_THRESHOLD * 2
 
         for item in unfiltered_items:
             authors = item.get("author", [])
@@ -42,18 +46,22 @@ class CrossrefVerificationModule(BaseVerificationModule):
             author_objects = []
 
             for author in authors:
-                author_object = Author(author.get("given"), author.get("family"), author.get("affiliation"))
+                # TODO - refactor for new author entity with Institution attr
+                affiliation = author.get("affiliation")
+                affiliations = [Institution(affiliation)] if affiliation else []
+                author_object = Author(author.get("given"),
+                                       author.get("family"), affiliations)
                 author_objects.append(author_object)
                 name_matcher = NameMatcher(researcher.has_uncertain_name_order)
 
                 candidate_given_name = author.get("given", "")
                 candidate_surname = author.get("family", "")
-                name_match_ratio = name_matcher.get_name_match_ratio(candidate_given_name, candidate_surname, target_given_name, target_surname)
+                name_match_ratio = name_matcher.get_name_match_ratio(
+                    candidate_given_name, candidate_surname, target_given_name,
+                    target_surname)
                 if name_match_ratio >= name_match_threshold:
                     author_object.name_match_ratio = name_match_ratio
                     matched_author = author_object
-
-
 
             if matched_author:
                 search_result = CrossrefSearchResult(matched_author,
@@ -66,10 +74,10 @@ class CrossrefVerificationModule(BaseVerificationModule):
                                                      item)
                 filtered_items.append(search_result)
 
-
         return filtered_items
 
-    def get_researcher_info(self, researcher: Researcher) -> List[CrossrefSearchResult]:
+    def get_researcher_info(self, researcher: Researcher) -> List[
+        CrossrefSearchResult]:
 
         result_items = []
         cursor = "*"
@@ -86,7 +94,10 @@ class CrossrefVerificationModule(BaseVerificationModule):
             response_data = response.json()
 
             if response.status_code != HTTPStatus.OK:
-                print(f"Verification of researcher {given_name} {surname} failed with the response {response.status_code} - {response.text}")
+                print(
+                    f"Verification of researcher {given_name} {surname} "
+                    f"failed with the response {response.status_code} - "
+                    f"{response.text}")
                 has_all_items = True
             else:
                 current_items = response_data['message']['items']
@@ -99,16 +110,17 @@ class CrossrefVerificationModule(BaseVerificationModule):
 
         return filtered_result_items
 
-
     def verify(self, researcher: Researcher) -> List[CrossrefSearchResult]:
         print("Extracting researcher information from Crossref")
 
         if not researcher.given_name:
-            print(f"Missing researcher first name, skipping '{self.module_name}'")
+            print(
+                f"Missing researcher first name, skipping '{self.module_name}'")
             return []
 
         if not researcher.surname:
-            print(f"Missing researcher last name, skipping '{self.module_name}'")
+            print(
+                f"Missing researcher last name, skipping '{self.module_name}'")
             return []
 
         return self.get_researcher_info(researcher)

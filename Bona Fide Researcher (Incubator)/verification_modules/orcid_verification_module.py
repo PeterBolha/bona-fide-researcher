@@ -1,13 +1,13 @@
 from http import HTTPStatus
-from typing import Any, List
+from typing import List
 
 import requests
 
 from models.author import Author
+from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.orcid_search_result import OrcidSearchResult
 from models.researcher import Researcher
-from models.crossref_search_result import CrossrefSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
@@ -36,10 +36,13 @@ class OrcidVerificationModule(BaseVerificationModule):
         target_given_name, target_surname = (researcher.given_name,
                                              researcher.surname)
 
+        # TODO - refactor for new author entity with Institution attr
         for item in unfiltered_items:
+            affiliation = item.get("institution-name")
+            affiliations = [Institution(affiliation)] if affiliation else []
             author_object = Author(item.get("given-names"),
                                    item.get("family-names"),
-                                   item.get("institution-name"),
+                                   affiliations,
                                    item.get("orcid-id"),
                                    item.get("email"))
             matched_result = OrcidSearchResult(author_object, item)
@@ -57,7 +60,8 @@ class OrcidVerificationModule(BaseVerificationModule):
 
         return filtered_items
 
-    def get_researcher_info(self, researcher: Researcher) -> List[OrcidSearchResult]:
+    def get_researcher_info(self, researcher: Researcher) -> List[
+        OrcidSearchResult]:
         result_items = []
         name_variations = [(researcher.given_name, researcher.surname)]
 
@@ -78,7 +82,8 @@ class OrcidVerificationModule(BaseVerificationModule):
                 "rows": self._REQUESTED_ROWS_COUNT
             }
             headers = {"Accept": "application/json"}
-            response = requests.get(self._ORCID_API_URL, params=params, headers=headers)
+            response = requests.get(self._ORCID_API_URL, params=params,
+                                    headers=headers)
             response_data = response.json()
 
             if response.status_code != HTTPStatus.OK:

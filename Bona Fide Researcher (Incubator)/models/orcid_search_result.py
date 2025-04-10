@@ -1,6 +1,5 @@
-from typing import Any, List
+from typing import Any
 
-from models import author
 from models.author import Author
 from models.researcher import Researcher
 from models.search_result import SearchResult
@@ -20,12 +19,10 @@ class OrcidSearchResult(SearchResult):
         attribute_rank_value = 0.05 * author_name_match_ratio
         self.internal_rank += author_name_match_ratio
 
-
-        if self.matched_author.affiliation:
+        if self.matched_author.affiliations:
             # TODO make affiliation match affect ranking
             # researcher_candidate.affiliation = self.matched_author.affiliation
             self.internal_rank += attribute_rank_value
-
 
     def print(self, verbose: bool = False):
         print("----------------------------------------")
