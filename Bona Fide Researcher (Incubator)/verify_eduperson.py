@@ -54,8 +54,8 @@ def main():
     orcid_verification_module = OrcidVerificationModule(args.verbose)
     eosc_verification_module = EoscVerificationModule(args.verbose)
 
-    # verification_modules = [crossref_verification_module, orcid_verification_module, eosc_verification_module]
-    verification_modules = [eosc_verification_module]
+    verification_modules = [crossref_verification_module, orcid_verification_module, eosc_verification_module]
+    # verification_modules = [eosc_verification_module]
 
     search_results_aggregator = SearchResultsAggregator(researcher, args.verbose)
 

@@ -6,7 +6,7 @@ import requests
 from models.author import Author
 from models.institution import Institution
 from models.name_matcher import NameMatcher
-from models.orcid_search_result import OrcidSearchResult
+from models.search_results.orcid_search_result import OrcidSearchResult
 from models.researcher import Researcher
 from verification_modules.base_verification_module import BaseVerificationModule
 

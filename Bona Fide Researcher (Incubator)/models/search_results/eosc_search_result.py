@@ -1,22 +1,22 @@
-from typing import Any, List
+from typing import Any, List, Set
 
 from models.author import Author
 from models.researcher import Researcher
-from models.search_result import SearchResult
+from models.search_results.search_result import SearchResult
 
 
-class CrossrefSearchResult(SearchResult):
+class EoscSearchResult(SearchResult):
     def __init__(self, matched_author: Author, authors: List[Author], doi: str,
-                 url: str, title: str, institution: str, publisher: str,
+                 urls: List[str], publishers: Set[str], title: str, domains: List[str],
                  raw_data: Any):
         super().__init__()
         self.matched_author = matched_author
         self.authors = authors
         self.doi = doi
-        self.url = url
+        self.urls = urls
+        self.publishers = publishers
         self.title = title
-        self.institution = institution
-        self.publisher = publisher
+        self.domains = domains
 
         self.raw_data = raw_data
 
@@ -29,16 +29,12 @@ class CrossrefSearchResult(SearchResult):
         self.internal_rank += author_name_match_ratio
 
         # award a point for the presence of these attributes
-        attributes = ['doi', 'url', 'title', 'institution', 'publisher']
+        attributes = ['doi', 'urls', 'title', 'publishers']
 
         for attr in attributes:
             if getattr(self, attr):
                 self.internal_rank += attribute_rank_value
 
-        if self.matched_author.affiliations:
-            # TODO make affiliation match affect ranking
-            # researcher_candidate.affiliation = self.matched_author.affiliation
-            self.internal_rank += attribute_rank_value
 
     def print(self, verbose: bool = False):
         print("----------------------------------------")
@@ -49,13 +45,10 @@ class CrossrefSearchResult(SearchResult):
         else:
             print("Matched author:")
             print(self.matched_author)
-            # print("All authors:")
-            # for author in self.authors:
-            #     print(author)
             print(f"DOI: {self.doi or "?"}")
-            print(f"URL: {self.url or "?"}")
+            print(f"URLS: {self.urls or "?"}")
             print(f"Title: {self.title or "?"}")
-            print(f"Institution: {self.institution or "?"}")
-            print(f"Publisher: {self.publisher or "?"}")
+            print(f"Domains: {self.domains or "?"}")
+            print(f"Publishers: {self.publishers or "?"}")
 
         print("----------------------------------------")

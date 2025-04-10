@@ -1,7 +1,7 @@
 from typing import List
 
 from models.researcher import Researcher
-from models.search_result import SearchResult
+from models.search_results.search_result import SearchResult
 
 
 class SearchResultsAggregator:

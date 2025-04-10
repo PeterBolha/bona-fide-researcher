@@ -4,7 +4,7 @@ from typing import List
 import requests
 
 from models.author import Author
-from models.eosc_search_result import EoscSearchResult
+from models.search_results.eosc_search_result import EoscSearchResult
 from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher

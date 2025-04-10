@@ -2,7 +2,7 @@ from typing import Any
 
 from models.author import Author
 from models.researcher import Researcher
-from models.search_result import SearchResult
+from models.search_results.search_result import SearchResult
 
 
 class OrcidSearchResult(SearchResult):

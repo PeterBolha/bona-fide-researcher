@@ -4,7 +4,7 @@ from typing import List
 import requests
 
 from models.author import Author
-from models.crossref_search_result import CrossrefSearchResult
+from models.search_results.crossref_search_result import CrossrefSearchResult
 from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher
