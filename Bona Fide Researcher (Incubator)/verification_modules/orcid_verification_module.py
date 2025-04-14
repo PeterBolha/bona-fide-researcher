@@ -8,13 +8,14 @@ from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.search_results.orcid_search_result import OrcidSearchResult
 from models.researcher import Researcher
+from models.search_results.unified_search_result import UnifiedSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
 class OrcidVerificationModule(BaseVerificationModule):
     def __init__(self, verbose: bool = False, requested_rows_count: int = 1000):
-        super().__init__(verbose)
-        self.module_name = "Orcid Verification Module"
+        super().__init__(verbose, "ORCID")
+        self.module_name = "ORCID Verification Module"
         self._ORCID_API_URL = "https://pub.orcid.org/v3.0/expanded-search/"
         # critical threshold for which name is considered a match (X out of 100)
         self._NAME_MATCH_THRESHOLD = 65
@@ -38,13 +39,16 @@ class OrcidVerificationModule(BaseVerificationModule):
 
         # TODO - refactor for new author entity with Institution attr
         for item in unfiltered_items:
-            affiliation = item.get("institution-name")
-            affiliations = [Institution(affiliation)] if affiliation else []
+            json_affiliations = item.get("institution-name")
+            affiliations = set()
+            for institution_name in json_affiliations:
+                affiliations.add(Institution(institution_name))
+
             author_object = Author(item.get("given-names"),
                                    item.get("family-names"),
                                    affiliations,
-                                   item.get("orcid-id"),
-                                   item.get("email"))
+                                   item.get("email"),
+                                   item.get("orcid-id"))
             matched_result = OrcidSearchResult(author_object, item)
             name_matcher = NameMatcher(researcher.has_uncertain_name_order)
 
@@ -96,12 +100,26 @@ class OrcidVerificationModule(BaseVerificationModule):
                 result_items.extend(current_items)
 
         filtered_result_items = self.filter_results(result_items, researcher)
-        print("Obtained researcher info from ORCID")
+        print(f"Obtained researcher info from {self.data_source_name}")
 
         return filtered_result_items
 
-    def verify(self, researcher: Researcher) -> List[OrcidSearchResult]:
-        print("Extracting researcher information from ORCID")
+    def get_unified_search_results(self, search_results: List[
+        OrcidSearchResult]) -> List[UnifiedSearchResult]:
+        unified_search_results = []
+
+        for orcid_search_result in search_results:
+            unified_search_result = UnifiedSearchResult(
+                matched_author=orcid_search_result.matched_author,
+                raw_data=orcid_search_result.raw_data,
+                data_source=self.data_source_name
+            )
+            unified_search_results.append(unified_search_result)
+
+        return unified_search_results
+
+    def verify(self, researcher: Researcher) -> List[UnifiedSearchResult]:
+        print(f"Extracting researcher information from {self.data_source_name}")
 
         if not researcher.given_name:
             print(
@@ -113,4 +131,5 @@ class OrcidVerificationModule(BaseVerificationModule):
                 f"Missing researcher last name, skipping '{self.module_name}'")
             return []
 
-        return self.get_researcher_info(researcher)
+        orcid_researcher_info = self.get_researcher_info(researcher)
+        return self.get_unified_search_results(orcid_researcher_info)

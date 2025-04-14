@@ -8,12 +8,13 @@ from models.search_results.eosc_search_result import EoscSearchResult
 from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher
+from models.search_results.unified_search_result import UnifiedSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
 class EoscVerificationModule(BaseVerificationModule):
     def __init__(self, verbose: bool = False, requested_rows_count: int = 20):
-        super().__init__(verbose)
+        super().__init__(verbose, "EOSC Resource Hub")
         self.module_name = "EOSC Resource Hub Verification Module"
         self._EOSC_API_URL = ("https://api.open-science-cloud.ec.europa.eu"
                               "/action/catalogue/items")
@@ -62,12 +63,12 @@ class EoscVerificationModule(BaseVerificationModule):
                     target_surname)
                 data_source = item.get("source", {})
 
-                institutions = []
+                institutions = set()
                 orgs = data_source.get("relevant_organizations", [])
                 for org in orgs:
                     institution = Institution(org.get("name"), org.get("ror"),
                                               org.get("isni"))
-                    institutions.append(institution)
+                    institutions.add(institution)
 
                 author_object = Author(candidate_given_name,
                                        candidate_surname,
@@ -158,12 +159,30 @@ class EoscVerificationModule(BaseVerificationModule):
                 has_all_items = len(current_items) < self._REQUESTED_ROWS_COUNT
 
         filtered_result_items = self.filter_results(result_items, researcher)
-        print("Obtained researcher info from EOSC Resource Hub")
+        print(f"Obtained researcher info from {self.data_source_name}")
 
         return filtered_result_items
 
-    def verify(self, researcher: Researcher) -> List[EoscSearchResult]:
-        print("Extracting researcher information from EOSC Resource Hub")
+    def get_unified_search_results(self, search_results: List[EoscSearchResult]) -> List[UnifiedSearchResult]:
+        unified_search_results = []
+
+        for eosc_search_result in search_results:
+            unified_search_result = UnifiedSearchResult(
+                matched_author=eosc_search_result.matched_author,
+                authors=set(eosc_search_result.authors),
+                doi=eosc_search_result.doi,
+                urls = set(eosc_search_result.urls),
+                title=eosc_search_result.title,
+                publishers= set(eosc_search_result.publishers),
+                raw_data=eosc_search_result.raw_data,
+                data_source=self.data_source_name
+            )
+            unified_search_results.append(unified_search_result)
+
+        return unified_search_results
+
+    def verify(self, researcher: Researcher) -> List[UnifiedSearchResult]:
+        print(f"Extracting researcher information from {self.data_source_name}")
 
         if not researcher.given_name:
             print(
@@ -175,4 +194,5 @@ class EoscVerificationModule(BaseVerificationModule):
                 f"Missing researcher last name, skipping '{self.module_name}'")
             return []
 
-        return self.get_researcher_info(researcher)
+        eosc_researcher_info = self.get_researcher_info(researcher)
+        return self.get_unified_search_results(eosc_researcher_info)

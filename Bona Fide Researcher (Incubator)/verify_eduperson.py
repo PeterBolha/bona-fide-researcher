@@ -60,8 +60,13 @@ def main():
     search_results_aggregator = SearchResultsAggregator(researcher, args.verbose)
 
     for verification_module in verification_modules:
-        search_results_aggregator.search_results += verification_module.verify(researcher)
+        print("Gathering information")
+        verification_results = verification_module.verify(researcher)
+        print("Adding new results")
+        search_results_aggregator.add_results(verification_results)
+        print("Added new results")
 
+    print("Presenting search results")
     search_results_aggregator.present_search_results()
 
 if __name__ == '__main__':

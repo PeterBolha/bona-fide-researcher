@@ -14,6 +14,10 @@ class SearchResult:
         return self.internal_rank == other.internal_rank
 
     @abc.abstractmethod
+    def print(self, verbose: bool = False) -> None:
+        pass
+
+    @abc.abstractmethod
     def calculate_internal_rank(self, researcher: Researcher) -> None:
         pass
 

@@ -7,7 +7,7 @@ from models.search_results.search_result import SearchResult
 
 class CrossrefSearchResult(SearchResult):
     def __init__(self, matched_author: Author, authors: List[Author], doi: str,
-                 url: str, title: str, institution: str, publisher: str,
+                 url: str, title: str, publisher: str,
                  raw_data: Any):
         super().__init__()
         self.matched_author = matched_author
@@ -15,7 +15,6 @@ class CrossrefSearchResult(SearchResult):
         self.doi = doi
         self.url = url
         self.title = title
-        self.institution = institution
         self.publisher = publisher
 
         self.raw_data = raw_data
@@ -49,13 +48,9 @@ class CrossrefSearchResult(SearchResult):
         else:
             print("Matched author:")
             print(self.matched_author)
-            # print("All authors:")
-            # for author in self.authors:
-            #     print(author)
             print(f"DOI: {self.doi or "?"}")
             print(f"URL: {self.url or "?"}")
             print(f"Title: {self.title or "?"}")
-            print(f"Institution: {self.institution or "?"}")
             print(f"Publisher: {self.publisher or "?"}")
 
         print("----------------------------------------")

@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import List
+from typing import Dict, List
 
 import requests
 
@@ -8,12 +8,13 @@ from models.search_results.crossref_search_result import CrossrefSearchResult
 from models.institution import Institution
 from models.name_matcher import NameMatcher
 from models.researcher import Researcher
+from models.search_results.unified_search_result import UnifiedSearchResult
 from verification_modules.base_verification_module import BaseVerificationModule
 
 
 class CrossrefVerificationModule(BaseVerificationModule):
     def __init__(self, verbose: bool = False):
-        super().__init__(verbose)
+        super().__init__(verbose, "Crossref")
         self.module_name = "Crossref Verification Module"
         self._CROSSREF_API_URL = "https://api.crossref.org/works"
         # critical threshold for which name is considered a match (X out of 100)
@@ -47,10 +48,17 @@ class CrossrefVerificationModule(BaseVerificationModule):
 
             for author in authors:
                 # TODO - refactor for new author entity with Institution attr
-                affiliation = author.get("affiliation")
-                affiliations = [Institution(affiliation)] if affiliation else []
+                json_affiliations = author.get("affiliation")
+                affiliations = set()
+                for affiliation in json_affiliations:
+                    name = affiliation.get("name")
+                    if name:
+                        affiliations.add(Institution(name=name))
+
                 author_object = Author(author.get("given"),
-                                       author.get("family"), affiliations)
+                                       author.get("family"),
+                                       affiliations)
+
                 author_objects.append(author_object)
                 name_matcher = NameMatcher(researcher.has_uncertain_name_order)
 
@@ -69,7 +77,6 @@ class CrossrefVerificationModule(BaseVerificationModule):
                                                      item.get("DOI"),
                                                      item.get("URL"),
                                                      item.get("title"),
-                                                     item.get("institution"),
                                                      item.get("publisher"),
                                                      item)
                 filtered_items.append(search_result)
@@ -106,12 +113,30 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 has_all_items = len(current_items) < self.requested_rows_count
 
         filtered_result_items = self.filter_results(result_items, researcher)
-        print("Obtained researcher info from Crossref")
+        print(f"Obtained researcher info from {self.data_source_name}")
 
         return filtered_result_items
 
-    def verify(self, researcher: Researcher) -> List[CrossrefSearchResult]:
-        print("Extracting researcher information from Crossref")
+    def get_unified_search_results(self, search_results: List[CrossrefSearchResult]) -> List[UnifiedSearchResult]:
+        unified_search_results = []
+
+        for crossref_search_result in search_results:
+            unified_search_result = UnifiedSearchResult(
+                matched_author=crossref_search_result.matched_author,
+                authors=set(crossref_search_result.authors),
+                doi=crossref_search_result.doi,
+                urls = set(crossref_search_result.url),
+                title=crossref_search_result.title,
+                publishers= set(crossref_search_result.publisher),
+                raw_data=crossref_search_result.raw_data,
+                data_source=self.data_source_name
+            )
+            unified_search_results.append(unified_search_result)
+
+        return unified_search_results
+
+    def verify(self, researcher: Researcher) -> List[UnifiedSearchResult]:
+        print(f"Extracting researcher information from {self.data_source_name}")
 
         if not researcher.given_name:
             print(
@@ -123,4 +148,5 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 f"Missing researcher last name, skipping '{self.module_name}'")
             return []
 
-        return self.get_researcher_info(researcher)
+        crossref_researcher_info = self.get_researcher_info(researcher)
+        return self.get_unified_search_results(crossref_researcher_info)
