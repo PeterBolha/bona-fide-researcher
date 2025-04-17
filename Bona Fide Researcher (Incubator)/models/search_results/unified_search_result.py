@@ -15,27 +15,46 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
                  data_source: str = "?"):
         super().__init__()
         self.matched_author = matched_author
+        self._matched_author_rank_weight = 1
+
+        if not authors:
+            authors = set()
         self.authors = authors
+        self._coauthor_rank_weight = 0.2
+
         self.doi = doi
+        self._doi_rank_value = 1
+
+        if not urls:
+            urls = set()
         self.urls = urls
+        self._url_rank_value = 1
 
         self.title = title
-        self.title_alternatives = set()
+        self._title_rank_value = 1
 
+        self.title_alternatives = set()
+        self._title_alt_rank_value = 1
+
+        if not publishers:
+            publishers = set()
         self.publishers = publishers
+        self._publisher_rank_value = 1
 
         if not domains:
             domains = set()
         self.domains = domains
+        self._domain_rank_value = 1
 
         self.data_source = data_source
+
         self.raw_data = raw_data
+        self._raw_data_rank_value = 0
 
     # TODO - implement fully
-    def merge_with(self, other: "UnifiedSearchResult", debug_flag: bool = False) -> None:
-        print("Merging search result author")
+    def merge_with(self, other: "UnifiedSearchResult",
+                   debug_flag: bool = False) -> None:
         self.matched_author.merge_with(other.matched_author, debug_flag)
-        print("Merged search result author")
 
         # TODO - high complexity, unreliable matching - fix! 
         # for current_author in self.authors:
@@ -58,11 +77,42 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
         separator = "\n--------------------\n"
 
         self.raw_data = str(self.raw_data)
-        self.raw_data += f"{separator}SOURCE: ({self.data_source}) -> {self.raw_data}"
+        self.raw_data += (f"{separator}SOURCE: ({self.data_source}) -> "
+                          f"{self.raw_data}")
 
-    # TODO implement ranking calculation
-    def calculate_internal_rank(self, researcher: Researcher) -> None:
-        pass
+    # TODO - reevaluate rank calculation & rank values
+    # Quality of DAta source could be incorporated into ranking
+    # raw data is always present, should be ranked?
+    def calculate_internal_rank(self, researcher: Researcher) -> float:
+        self.internal_rank = 0
+
+        if self.matched_author:
+            self.internal_rank += (self._matched_author_rank_weight *
+                                   self.matched_author.calculate_internal_rank(
+                researcher))
+
+        for author in self.authors:
+            self.internal_rank += author.calculate_internal_rank(researcher) * self._coauthor_rank_weight
+
+        if self.doi:
+            self.internal_rank += self._doi_rank_value
+
+        for _ in self.urls:
+            self.internal_rank += self._url_rank_value
+
+        if self.title:
+            self.internal_rank += self._title_rank_value
+
+        for _ in self.title_alternatives:
+            self.internal_rank += self._title_alt_rank_value
+
+        for _ in self.publishers:
+            self.internal_rank += self._publisher_rank_value
+
+        for _ in self.domains:
+            self.internal_rank += self._domain_rank_value
+
+        return self.internal_rank
 
     def print(self, verbose: bool = False) -> None:
         print("########################################")
@@ -71,8 +121,8 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
             print(self.raw_data)
 
         else:
-            print("Matched author:")
-            print(self.matched_author)
+            # print("Matched author:")
+            # print(self.matched_author)
             print(f"DOI: {self.doi or "?"}")
 
             if self.urls:
@@ -102,5 +152,3 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
                     print(f"\t- {domain}")
             else:
                 print(f"Domains: ?")
-
-        print("########################################")

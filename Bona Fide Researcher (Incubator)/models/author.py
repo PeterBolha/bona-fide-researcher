@@ -1,13 +1,16 @@
 from typing import Set
 
+from abstracts.rankable import Rankable
 from interfaces.imergeable import IMergeable
 from models.institution import Institution
+from models.researcher import Researcher
 
 
-class Author(IMergeable["Author"]):
+class Author(IMergeable["Author"], Rankable):
     def __init__(self, given_name: str, surname: str,
-                 affiliations: Set[Institution], emails: Set[str]=None,
+                 affiliations: Set[Institution], emails: Set[str] = None,
                  orcid: str = "") -> None:
+        super().__init__()
         self.given_name = given_name
         self.given_name_alternatives = set()
 
@@ -21,7 +24,11 @@ class Author(IMergeable["Author"]):
         if not emails:
             emails = set()
         self.emails = emails
+        self._email_rank_value = 1
+
         self.orcid = orcid
+        self._orcid_rank_value = 1
+
         self.orcid_alternatives = set()
 
         self.name_match_ratio = 0
@@ -42,8 +49,6 @@ class Author(IMergeable["Author"]):
         # TODO - refine this merging, remove/join duplicate institutions
         print("Merging author affiliations (institutions)")
         self.affiliations.update(other.affiliations)
-        if debug_flag:
-            print("debug")
 
         print("Merging author emails")
         self.emails.update(other.emails)
@@ -64,18 +69,33 @@ class Author(IMergeable["Author"]):
                     other.surname)
 
     def __hash__(self) -> int:
-        if self.orcid:
-            return hash(self.orcid)
-        else:
-            return hash((self.given_name, self.surname))
+        return hash((self.given_name, self.surname))
 
     def __str__(self) -> str:
-        affiliations_str = ", ".join(str(institution) for institution in
+        affiliations_str = "Affiliations: \n" + "\n".join(f"\t - {str(institution)}" for institution in
                                      self.affiliations) if self.affiliations \
             else "?"
         return (
             f"Author: {self.given_name or "?"} (given name), "
-            f"{self.surname or "?"} (surname), "
-            f"{affiliations_str} (affiliations), {self.orcid or "?"} (ORCID), "
-            f"{self.email or "?"} (email) [NAME MATCH - "
+            f"{self.surname or "?"} (surname)\n"
+            f"{affiliations_str}\n"
+            f"{self.orcid or "?"} (ORCID), "
+            f"{self.emails or "?"} (email) [NAME MATCH - "
             f"{int(self.name_match_ratio)}/200]")
+
+    # TODO - reevaluate rank calculation & rank values
+    def calculate_internal_rank(self, researcher: Researcher) -> float:
+        self.internal_rank = 0
+
+        for affiliation in self.affiliations:
+            self.internal_rank += affiliation.calculate_internal_rank(researcher)
+
+        for _ in self.emails:
+            self.internal_rank += self._email_rank_value
+
+        if self.orcid:
+            self.internal_rank += self._orcid_rank_value
+
+        self.internal_rank += self.name_match_ratio
+
+        return self.internal_rank

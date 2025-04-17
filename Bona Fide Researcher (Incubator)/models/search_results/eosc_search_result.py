@@ -7,7 +7,7 @@ from models.search_results.search_result import SearchResult
 
 class EoscSearchResult(SearchResult):
     def __init__(self, matched_author: Author, authors: List[Author], doi: str,
-                 urls: List[str], publishers: Set[str], title: str, domains: List[str],
+                 urls: Set[str], publishers: Set[str], title: str, domains: List[str],
                  raw_data: Any):
         super().__init__()
         self.matched_author = matched_author

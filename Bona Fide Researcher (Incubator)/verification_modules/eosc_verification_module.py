@@ -97,13 +97,13 @@ class EoscVerificationModule(BaseVerificationModule):
                         if len(titles) > 0:
                             title = titles[0]
 
-                    urls = []
-                    publishers = set([])
+                    urls = set()
+                    publishers = set()
                     manifestations = data_source.get("manifestations", [])
                     for manifestation in manifestations:
                         url = manifestation.get("url")
                         if url:
-                            urls.append(url)
+                            urls.add(url)
 
                         publisher = manifestation.get("venue", {}).get("name")
                         if publisher:
@@ -171,9 +171,10 @@ class EoscVerificationModule(BaseVerificationModule):
                 matched_author=eosc_search_result.matched_author,
                 authors=set(eosc_search_result.authors),
                 doi=eosc_search_result.doi,
-                urls = set(eosc_search_result.urls),
+                urls = eosc_search_result.urls,
                 title=eosc_search_result.title,
-                publishers= set(eosc_search_result.publishers),
+                publishers=set(eosc_search_result.publishers),
+                domains=set(eosc_search_result.domains),
                 raw_data=eosc_search_result.raw_data,
                 data_source=self.data_source_name
             )

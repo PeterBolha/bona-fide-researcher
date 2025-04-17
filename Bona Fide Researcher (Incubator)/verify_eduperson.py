@@ -55,18 +55,13 @@ def main():
     eosc_verification_module = EoscVerificationModule(args.verbose)
 
     verification_modules = [crossref_verification_module, orcid_verification_module, eosc_verification_module]
-    # verification_modules = [eosc_verification_module]
 
     search_results_aggregator = SearchResultsAggregator(researcher, args.verbose)
 
     for verification_module in verification_modules:
-        print("Gathering information")
         verification_results = verification_module.verify(researcher)
-        print("Adding new results")
         search_results_aggregator.add_results(verification_results)
-        print("Added new results")
 
-    print("Presenting search results")
     search_results_aggregator.present_search_results()
 
 if __name__ == '__main__':

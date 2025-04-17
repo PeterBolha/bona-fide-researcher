@@ -125,9 +125,9 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 matched_author=crossref_search_result.matched_author,
                 authors=set(crossref_search_result.authors),
                 doi=crossref_search_result.doi,
-                urls = set(crossref_search_result.url),
+                urls={crossref_search_result.url},
                 title=crossref_search_result.title,
-                publishers= set(crossref_search_result.publisher),
+                publishers= {crossref_search_result.publisher},
                 raw_data=crossref_search_result.raw_data,
                 data_source=self.data_source_name
             )
