@@ -37,7 +37,8 @@ class Author(IMergeable["Author"], Rankable):
         print("Merging author name")
         if not self.given_name and other.given_name:
             self.given_name = other.given_name
-        elif self.given_name and other.given_name and self.given_name != other.given_name:
+        elif (self.given_name and other.given_name and self.given_name !=
+              other.given_name):
             self.given_name_alternatives.add(other.given_name)
 
         print("Merging author surname")
@@ -72,23 +73,26 @@ class Author(IMergeable["Author"], Rankable):
         return hash((self.given_name, self.surname))
 
     def __str__(self) -> str:
-        affiliations_str = "Affiliations: \n" + "\n".join(f"\t - {str(institution)}" for institution in
-                                     self.affiliations) if self.affiliations \
+        affiliations_str = "Affiliations: \n" + "\n".join(
+            f"\t - {str(institution)}" for institution in
+            self.affiliations) if self.affiliations \
             else "?"
         return (
             f"Author: {self.given_name or "?"} (given name), "
-            f"{self.surname or "?"} (surname)\n"
+            f"{self.surname or "?"} (surname) [NAME MATCH - "
+            f"{int(self.name_match_ratio)}/200]\n"
             f"{affiliations_str}\n"
-            f"{self.orcid or "?"} (ORCID), "
-            f"{self.emails or "?"} (email) [NAME MATCH - "
-            f"{int(self.name_match_ratio)}/200]")
+            f"ORCID: {self.orcid or "?"}\n"
+            f"Email: {self.emails or "?"}"
+        )
 
     # TODO - reevaluate rank calculation & rank values
     def calculate_internal_rank(self, researcher: Researcher) -> float:
         self.internal_rank = 0
 
         for affiliation in self.affiliations:
-            self.internal_rank += affiliation.calculate_internal_rank(researcher)
+            self.internal_rank += affiliation.calculate_internal_rank(
+                researcher)
 
         for _ in self.emails:
             self.internal_rank += self._email_rank_value

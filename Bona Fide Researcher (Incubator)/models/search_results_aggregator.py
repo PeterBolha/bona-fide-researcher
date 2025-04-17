@@ -76,7 +76,7 @@ class SearchResultsAggregator:
         for index, (author, results) in enumerate(self.aggregated_search_results.items()):
             print(f"#{index + 1} (INDEX) - {results["internal_rank"]:.2f} (RESULT RANK)")
             print(author)
-            print("Collected works:\n")
+            print("Collected works:")
             for doi, search_result in results["articles"].items():
                 search_result.print(verbose=self.verbose)
 

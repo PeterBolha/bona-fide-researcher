@@ -123,6 +123,7 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
         else:
             # print("Matched author:")
             # print(self.matched_author)
+            print(f"Title: {self.title or "?"}")
             print(f"DOI: {self.doi or "?"}")
 
             if self.urls:
@@ -132,7 +133,6 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
             else:
                 print(f"URLS: ?")
 
-            print(f"Title: {self.title or "?"}")
 
             if self.title_alternatives:
                 print(f"Alternative titles: ")
