@@ -41,6 +41,8 @@ def main():
     parser.add_argument("-e", "--email", type=str, help="Email address of the person to be verified")
     parser.add_argument("-o", "--orcid", type=str, help="ORCID identifier of the person to be verified")
     parser.add_argument("-a", "--affiliation", type=str, help="(Institutional) Affiliation of the person to be verified")
+    parser.add_argument("-l", "--limit-results", type=int, default=-1, help="Limit the output results to first N by rank")
+
 
     # switches
     parser.add_argument("-u", "--uncertain-name-order", action="store_true", help="Add when uncertain which name is the given name and which is the surname. Given name and Surname will be treated interchangeably.")
@@ -62,7 +64,7 @@ def main():
         verification_results = verification_module.verify(researcher)
         search_results_aggregator.add_results(verification_results)
 
-    search_results_aggregator.present_search_results()
+    search_results_aggregator.present_search_results(args.limit_results)
 
 if __name__ == '__main__':
     main()

@@ -72,8 +72,11 @@ class SearchResultsAggregator:
             key=lambda result: result[1].internal_rank,
             reverse=True))
 
-    def _print_search_results(self):
+    def _print_search_results(self, limit_results: int):
         for index, (author, results) in enumerate(self.aggregated_search_results.items()):
+            if index == limit_results:
+                break
+
             print(f"#{index + 1} (INDEX) - {results["internal_rank"]:.2f} (RESULT RANK)")
             print(author)
             print("Collected works:")
@@ -81,7 +84,7 @@ class SearchResultsAggregator:
                 search_result.print(verbose=self.verbose)
 
 
-    def present_search_results(self):
+    def present_search_results(self, limit_results: int):
         self._rank_results()
         self._sort_results()
-        self._print_search_results()
+        self._print_search_results(limit_results)
