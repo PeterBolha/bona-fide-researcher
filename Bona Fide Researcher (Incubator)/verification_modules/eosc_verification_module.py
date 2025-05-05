@@ -20,8 +20,10 @@ class EoscVerificationModule(BaseVerificationModule):
                               "/action/catalogue/items")
         # critical threshold for which name is considered a match (X out of 100)
         self._NAME_MATCH_THRESHOLD = 65
-        # more than 20 is prohibited by the EOSC API
+        # more than 20 is prohibited by the EOSC API (records per page fetched)
         self._REQUESTED_ROWS_PAGE_LIMIT = 20
+        # how many pages of results to fetch
+        self._PAGE_LIMIT = 5
 
         if requested_rows_count <= self._REQUESTED_ROWS_PAGE_LIMIT:
             self._REQUESTED_ROWS_COUNT = requested_rows_count
@@ -130,10 +132,8 @@ class EoscVerificationModule(BaseVerificationModule):
 
         start_page = 0
         has_all_items = False
-        # TODO remove this limit
-        page_limit = 5
-        while not has_all_items and start_page < page_limit:
-            print(f"start_page: {start_page + 1} of {page_limit}")
+        while not has_all_items and start_page < self._PAGE_LIMIT:
+            print(f"start_page: {start_page + 1} of {self._PAGE_LIMIT}")
             params = {
                 # order of names does not matter in EOSC search
                 "query": f"{given_name} {surname}",
