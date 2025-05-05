@@ -20,6 +20,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
         # critical threshold for which name is considered a match (X out of 100)
         self._NAME_MATCH_THRESHOLD = 65
         self.requested_rows_count = 1000
+        self._PAGE_LIMIT = 5
 
     def print_reduced_result(self, result_items):
         for item in result_items:
@@ -91,7 +92,8 @@ class CrossrefVerificationModule(BaseVerificationModule):
         has_all_items = False
         given_name, surname = researcher.given_name, researcher.surname
 
-        while not has_all_items:
+        start_page = 0
+        while not has_all_items and start_page < self._PAGE_LIMIT:
             params = {
                 "query.author": f"{given_name} {surname}",
                 "cursor": cursor,
@@ -110,6 +112,7 @@ class CrossrefVerificationModule(BaseVerificationModule):
                 current_items = response_data['message']['items']
                 result_items.extend(current_items)
                 cursor = response_data['message']['next-cursor']
+                start_page += 1
                 has_all_items = len(current_items) < self.requested_rows_count
 
         filtered_result_items = self.filter_results(result_items, researcher)

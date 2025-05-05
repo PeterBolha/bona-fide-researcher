@@ -1,3 +1,4 @@
+import math
 from typing import List
 
 from models.researcher import Researcher
@@ -14,7 +15,7 @@ class SearchResultsAggregator:
         total = len(search_results)
         count = 0
         # How often to print processing updates
-        print_update_interval = len(search_results) // 10
+        print_update_interval = math.ceil(len(search_results) / 10)
         for search_result in search_results:
             author = search_result.matched_author
             if not author:
