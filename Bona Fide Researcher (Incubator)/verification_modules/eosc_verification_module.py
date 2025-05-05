@@ -52,12 +52,13 @@ class EoscVerificationModule(BaseVerificationModule):
 
                 person = author.get("person", {})
                 person_names_split = person.get("full_name", "").split()
+                person_names_cleaned = [name_part.strip(",;") for name_part in person_names_split]
 
-                if not len(person_names_split) >= 2:
+                if not len(person_names_cleaned) >= 2:
                     continue
 
-                candidate_given_name = person_names_split[0]
-                candidate_surname = person_names_split[-1]
+                candidate_given_name = person_names_cleaned[0]
+                candidate_surname = person_names_cleaned[-1]
                 name_matcher = NameMatcher(researcher.has_uncertain_name_order)
 
                 name_match_ratio = name_matcher.get_name_match_ratio(
@@ -83,6 +84,7 @@ class EoscVerificationModule(BaseVerificationModule):
                     matched_author = author_object
 
                 if matched_author:
+                    print("EOSC matched author:", matched_author)
                     raw_domains = data_source.get("domain", [])
                     domains = [d.get("domain", "?") for d in raw_domains]
 
