@@ -69,7 +69,7 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
         if not self.title and other.title:
             self.title = other.title
         elif self.title and other.title and self.title != other.title:
-            self.title_alternatives.update(other.title)
+            self.title_alternatives.add(other.title)
 
         self.publishers.update(other.publishers)
         self.domains.update(other.domains)

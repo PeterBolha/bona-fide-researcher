@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import Dict, List
+from typing import List
 
 import requests
 
@@ -73,11 +73,13 @@ class CrossrefVerificationModule(BaseVerificationModule):
                     matched_author = author_object
 
             if matched_author:
+                titles = item.get("title", ["?"])
+                title = titles[0] if titles else "?"
                 search_result = CrossrefSearchResult(matched_author,
                                                      author_objects,
                                                      item.get("DOI"),
                                                      item.get("URL"),
-                                                     item.get("title"),
+                                                     title,
                                                      item.get("publisher"),
                                                      item)
                 filtered_items.append(search_result)
