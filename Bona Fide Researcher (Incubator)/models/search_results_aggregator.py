@@ -30,14 +30,14 @@ class SearchResultsAggregator:
 
             # TODO - handle missing DOI
             doi = search_result.doi
-            stored_article: UnifiedSearchResult = self.aggregated_search_results[author].get(doi)
+            # TODO - check correctness of .get("articles")
+            stored_article: UnifiedSearchResult = self.aggregated_search_results[author].get("articles", {}).get(doi)
             # store article from the search result if not already present
             if not stored_article:
                 stored_article = search_result
                 self.aggregated_search_results[author]["articles"][doi] = search_result
             # if article with the same DOI already exists, consolidate information with the new data source
             else:
-                print("Merging article: {}".format(search_result.title))
                 stored_article.merge_with(search_result)
 
 

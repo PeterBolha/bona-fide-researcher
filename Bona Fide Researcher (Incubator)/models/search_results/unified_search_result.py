@@ -9,7 +9,7 @@ from models.search_results.search_result import SearchResult
 class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
     def __init__(self, matched_author: Author = None,
                  authors: Set[Author] = None, doi: str = None,
-                 urls: Set[str] = None, title: str = None,
+                 urls: Set[str] = None, title: str = None, descriptions: Set[str] = None,
                  publishers: Set[str] = None,
                  domains: Set[str] = None, raw_data: Any = None,
                  data_source: str = "?"):
@@ -32,6 +32,11 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
 
         self.title = title
         self._title_rank_value = 1
+
+        if not descriptions:
+            descriptions = set()
+        self.descriptions = descriptions
+        self._description_rank_value = 1
 
         self.title_alternatives = set()
         self._title_alt_rank_value = 1
@@ -106,6 +111,9 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
         for _ in self.title_alternatives:
             self.internal_rank += self._title_alt_rank_value
 
+        for _ in self.descriptions:
+            self.internal_rank += self._description_rank_value
+
         for _ in self.publishers:
             self.internal_rank += self._publisher_rank_value
 
@@ -133,11 +141,15 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
             else:
                 print(f"URLS: ?")
 
-
             if self.title_alternatives:
                 print(f"Alternative titles: ")
                 for alt_title in self.title_alternatives:
                     print(f"\t- {alt_title}")
+
+            if self.descriptions:
+                print(f"Descriptions: ")
+                for description in self.descriptions:
+                    print(f"\t- {description}")
 
             if self.publishers:
                 print(f"Publishers: ")
