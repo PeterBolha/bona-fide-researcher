@@ -84,7 +84,6 @@ class EoscVerificationModule(BaseVerificationModule):
                     matched_author = author_object
 
                 if matched_author:
-                    print("EOSC matched author:", matched_author)
                     raw_domains = data_source.get("domain", [])
                     domains = [d.get("domain", "?") for d in raw_domains]
 
