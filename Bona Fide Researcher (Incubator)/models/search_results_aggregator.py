@@ -3,6 +3,7 @@ from typing import List
 
 from models.researcher import Researcher
 from models.search_results.unified_search_result import UnifiedSearchResult
+from utils.formatting import print_delimiter_large
 
 
 class SearchResultsAggregator:
@@ -78,6 +79,7 @@ class SearchResultsAggregator:
             if index == limit_results:
                 break
 
+            print_delimiter_large()
             print(f"#{index + 1} (INDEX) - {results["internal_rank"]:.2f} (RESULT RANK)")
             print(author)
             print("Collected works:")

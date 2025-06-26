@@ -4,6 +4,7 @@ from interfaces.imergeable import IMergeable
 from models.author import Author
 from models.researcher import Researcher
 from models.search_results.search_result import SearchResult
+from utils.formatting import print_delimiter_medium
 
 
 class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
@@ -123,7 +124,7 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
         return self.internal_rank
 
     def print(self, verbose: bool = False) -> None:
-        print("########################################")
+        print_delimiter_medium()
 
         if verbose:
             print(self.raw_data)

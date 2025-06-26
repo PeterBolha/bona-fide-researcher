@@ -2,6 +2,7 @@ import argparse
 
 from models.researcher import Researcher
 from models.search_results_aggregator import SearchResultsAggregator
+from utils.formatting import print_delimiter_large
 from verification_modules.composable.arxiv_verification_module import \
     ArxivVerificationModule
 from verification_modules.composable.crossref_verification_module import \
@@ -15,7 +16,8 @@ from verification_modules.self_contained.ror_verification_module import \
 
 def print_args_overview(args):
     print("User attributes given:")
-    print("----------------------")
+    print_delimiter_large()
+
     if args.given_name:
         print("Given name:", args.given_name)
 
@@ -33,7 +35,7 @@ def print_args_overview(args):
     else:
         print("Fixed name order")
 
-    print("----------------------")
+    print_delimiter_large()
 
 
 def main():

@@ -28,7 +28,7 @@ class RorVerificationModule(SelfContainedVerificationModule):
                                            self._RESULT_DISPLAY_LIMIT)
             print(
                 f"{self.data_source_name} researcher email domain "
-                f"verification was successful."
+                f"verification was successful.\n"
             )
         except EmailNotValidError as e:
             print(f"{self.data_source_name} researcher email domain "
