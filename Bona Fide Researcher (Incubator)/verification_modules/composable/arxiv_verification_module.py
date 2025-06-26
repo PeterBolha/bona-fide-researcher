@@ -8,7 +8,7 @@ from models.name_matcher import NameMatcher
 from models.researcher import Researcher
 from models.search_results.arxiv_search_result import ArxivSearchResult
 from models.search_results.unified_search_result import UnifiedSearchResult
-from verification_modules.base_verification_module import BaseVerificationModule
+from verification_modules.composable.base_verification_module import BaseVerificationModule
 
 
 class ArxivVerificationModule(BaseVerificationModule):

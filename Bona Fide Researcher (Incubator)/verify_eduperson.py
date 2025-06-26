@@ -2,12 +2,12 @@ import argparse
 
 from models.researcher import Researcher
 from models.search_results_aggregator import SearchResultsAggregator
-from verification_modules.arxiv_verification_module import \
+from verification_modules.composable.arxiv_verification_module import \
     ArxivVerificationModule
-from verification_modules.crossref_verification_module import \
+from verification_modules.composable.crossref_verification_module import \
     CrossrefVerificationModule
-from verification_modules.eosc_verification_module import EoscVerificationModule
-from verification_modules.orcid_verification_module import \
+from verification_modules.composable.eosc_verification_module import EoscVerificationModule
+from verification_modules.composable.orcid_verification_module import \
     OrcidVerificationModule
 from verification_modules.self_contained.ror_verification_module import \
     RorVerificationModule
