@@ -9,6 +9,8 @@ from verification_modules.crossref_verification_module import \
 from verification_modules.eosc_verification_module import EoscVerificationModule
 from verification_modules.orcid_verification_module import \
     OrcidVerificationModule
+from verification_modules.self_contained.ror_verification_module import \
+    RorVerificationModule
 
 
 def print_args_overview(args):
@@ -60,7 +62,10 @@ def main():
                              "Surname will be treated interchangeably.")
     parser.add_argument("-v", "--verbose", action="store_true",
                         help="When present, all the available information "
-                             "about the researcher will be shown")
+                             "about the researcher will be shown.")
+    parser.add_argument("-d", "--verify-email-domain", action="store_true",
+                        help="When present, email domain will be verified "
+                             "through ROR. Email must be provided.")
 
     args = parser.parse_args()
     print_args_overview(args)
@@ -68,19 +73,32 @@ def main():
     researcher = Researcher(args.given_name, args.surname, args.email,
                             args.orcid, args.affiliation,
                             args.uncertain_name_order)
+
+    # Self-contained verification modules
+    # - produce individual results published once at the beginning
+    ror_verification_module = RorVerificationModule(args.verbose,
+                                                    is_active=args.verify_email_domain)
+
+    self_contained_verification_modules = [ror_verification_module]
+
+    for verification_module in self_contained_verification_modules:
+        verification_module.verify(researcher)
+
+    # Composable verification modules
+    # - produce results that need to be composed together before publishing
     crossref_verification_module = CrossrefVerificationModule(args.verbose)
     orcid_verification_module = OrcidVerificationModule(args.verbose)
     eosc_verification_module = EoscVerificationModule(args.verbose)
     arxiv_verification_module = ArxivVerificationModule(args.verbose)
 
-    verification_modules = [crossref_verification_module,
+    composable_verification_modules = [crossref_verification_module,
                             orcid_verification_module, eosc_verification_module,
                             arxiv_verification_module]
 
     search_results_aggregator = SearchResultsAggregator(researcher,
                                                         args.verbose)
 
-    for verification_module in verification_modules:
+    for verification_module in composable_verification_modules:
         verification_results = verification_module.verify(researcher)
         search_results_aggregator.add_results(verification_results)
 
