@@ -24,14 +24,19 @@ class Author(IMergeable["Author"], Rankable):
         if not emails:
             emails = set()
         self.emails = emails
-        self._email_rank_value = 1
+        self._email_rank_value_presence_multiplier = 0.1
+        self._email_rank_value_match_multiplier = 1
+        self._email_rank_value_match = 100
 
         self.orcid = orcid
-        self._orcid_rank_value = 1
+        self._orcid_rank_value_presence_multiplier = 0.1
+        self._orcid_rank_value_match_multiplier = 1
+        self._orcid_rank_value_match = 500
 
         self.orcid_alternatives = set()
 
         self.name_match_ratio = 0
+        self.perfect_match_attrs_count = 0
 
     def merge_with(self, other: "Author", debug_flag: bool = False) -> None:
         if not self.given_name and other.given_name:
@@ -87,13 +92,34 @@ class Author(IMergeable["Author"], Rankable):
         for affiliation in self.affiliations:
             self.internal_rank += affiliation.calculate_internal_rank(
                 researcher)
+            if affiliation.has_perfect_match:
+                self.perfect_match_attrs_count += 1
 
-        for _ in self.emails:
-            self.internal_rank += self._email_rank_value
+        for email in self.emails:
+            if email == researcher.email:
+                self.perfect_match_attrs_count += 1
+                self.internal_rank += (
+                        self._email_rank_value_match_multiplier *
+                        self._email_rank_value_match)
+            else:
+                self.internal_rank += (
+                        self._email_rank_value_presence_multiplier *
+                        self._email_rank_value_match)
 
         if self.orcid:
-            self.internal_rank += self._orcid_rank_value
+            if self.orcid == researcher.orcid:
+                self.perfect_match_attrs_count += 1
+                self.internal_rank += (
+                        self._orcid_rank_value_match_multiplier *
+                        self._orcid_rank_value_match)
+            else:
+                self.internal_rank += (
+                        self._orcid_rank_value_presence_multiplier *
+                        self._orcid_rank_value_match)
 
         self.internal_rank += self.name_match_ratio
+
+        if self.name_match_ratio == 200:
+            self.perfect_match_attrs_count += 1
 
         return self.internal_rank

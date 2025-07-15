@@ -53,7 +53,7 @@ def main():
                         help="ORCID identifier of the person to be verified")
     parser.add_argument("-a", "--affiliation", type=str,
                         help="(Institutional) Affiliation of the person to be "
-                             "verified")
+                             "verified (ROR, ISNI or name)")
     parser.add_argument("-l", "--limit-results", type=int, default=-1,
                         help="Limit the output results to first N by rank")
 

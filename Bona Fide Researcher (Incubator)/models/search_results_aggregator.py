@@ -63,7 +63,8 @@ class SearchResultsAggregator:
         # Sorting based on author's rank
         self.aggregated_search_results = dict(sorted(
             self.aggregated_search_results.items(),
-            key=lambda result: result[0].internal_rank,
+            key=lambda result: (result[0].perfect_match_attrs_count,
+                                result[0].internal_rank),
             reverse=True))
 
         # Sort articles within author's records in order of relevance
@@ -80,7 +81,20 @@ class SearchResultsAggregator:
                 break
 
             print_delimiter_large()
-            print(f"#{index + 1} (INDEX) - {results["internal_rank"]:.2f} (RESULT RANK)")
+            author_rank = round(author.internal_rank, 2)
+            articles_rank = round(results["internal_rank"], 2)
+            print(f"#{index + 1} (INDEX)")
+            print("Result score breakdown:")
+            print(f"\t Author total score: {author_rank}")
+
+            num_of_articles = len(results['articles'])
+            print(f"\t Articles total score: {articles_rank}")
+            print(f"\t\t Number of articles: {num_of_articles}")
+
+            if num_of_articles > 0:
+                print(f"\t\t Average score of article: "
+                      f"{round(articles_rank / num_of_articles, 2)}")
+
             print(author)
             print("Collected works:")
             for doi, search_result in results["articles"].items():
