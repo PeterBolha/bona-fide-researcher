@@ -1,0 +1,17 @@
+DELIMITER_LARGE_SIZE = 80
+DELIMITER_LARGE_CHAR = "≡"
+
+DELIMITER_MEDIUM_SIZE = 40
+DELIMITER_MEDIUM_CHAR = "="
+
+DELIMITER_SMALL_SIZE = 20
+DELIMITER_SMALL_CHAR = "-"
+
+def print_delimiter_large() -> None:
+    print(DELIMITER_LARGE_CHAR * DELIMITER_LARGE_SIZE)
+
+def print_delimiter_medium() -> None:
+    print(DELIMITER_MEDIUM_CHAR * DELIMITER_MEDIUM_SIZE)
+
+def print_delimiter_small() -> None:
+    print(DELIMITER_SMALL_CHAR * DELIMITER_SMALL_SIZE)
