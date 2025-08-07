@@ -85,6 +85,18 @@ class Author(IMergeable["Author"], Rankable):
             f"Email: {self.emails or "?"}"
         )
 
+    def to_dict(self) -> dict:
+        serialized_affiliations = [aff.to_dict() for aff in self.affiliations]
+
+        return {
+            "given_name": self.given_name,
+            "surname": self.surname,
+            "affiliations": serialized_affiliations,
+            "emails": list(self.emails),
+            "orcid": self.orcid,
+            "attributes_with_perfect_match": self.perfect_match_attrs_count,
+        }
+
     # TODO - reevaluate rank calculation & rank values
     def calculate_internal_rank(self, researcher: Researcher) -> float:
         self.internal_rank = 0

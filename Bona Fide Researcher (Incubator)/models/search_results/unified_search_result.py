@@ -123,6 +123,21 @@ class UnifiedSearchResult(SearchResult, IMergeable["UnifiedSearchResult"]):
 
         return self.internal_rank
 
+    def to_dict(self) -> dict:
+        authors = [author.to_dict() for author in self.authors]
+
+        return {
+            "matched_author": self.matched_author.to_dict(),
+            "authors": authors,
+            "doi": self.doi,
+            "urls": list(self.urls),
+            "title": self.title,
+            "descriptions": list(self.descriptions),
+            "title_alternatives": list(self.title_alternatives),
+            "publishers": list(self.publishers),
+            "domains": list(self.domains),
+            "data_source": self.data_source,
+        }
     def print(self, verbose: bool = False) -> None:
         print_delimiter_medium()
 

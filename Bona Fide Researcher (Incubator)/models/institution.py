@@ -44,6 +44,13 @@ class Institution(Rankable):
         return (f"Institution: {self.name} - identifiers: {self.ror} (ROR), "
                 f"{self.isni} (ISNI)")
 
+    def to_dict(self) -> dict:
+        return {
+            "name": self.name,
+            "ror": self.ror,
+            "isni": self.isni,
+        }
+
     # TODO - reevaluate rank calculation & rank values
     def calculate_internal_rank(self, researcher: Researcher) -> float:
         self.internal_rank = 0

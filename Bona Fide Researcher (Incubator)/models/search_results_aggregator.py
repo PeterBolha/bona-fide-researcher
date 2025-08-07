@@ -1,4 +1,5 @@
 import math
+from itertools import islice
 from typing import List
 
 from models.researcher import Researcher
@@ -100,8 +101,27 @@ class SearchResultsAggregator:
             for doi, search_result in results["articles"].items():
                 search_result.print(verbose=self.verbose)
 
-
-    def present_search_results(self, limit_results: int):
+    def _prepare_search_results(self):
         self._rank_results()
         self._sort_results()
+
+    def present_search_results_cli(self, limit_results: int):
+        self._prepare_search_results()
         self._print_search_results(limit_results)
+
+    def get_search_results_dict(self, limit_results: int):
+        self._prepare_search_results()
+        top_results = self.aggregated_search_results
+        if 0 < limit_results < len(self.aggregated_search_results):
+            top_results = dict(islice(
+                self.aggregated_search_results.items(), limit_results))
+
+        results_to_present = {"candidates": []}
+        for author, info in top_results.items():
+            articles_info = [article.to_dict() for article in info[
+                "articles"].values()]
+            candidate = {"author": author.to_dict(),
+                         "articles": articles_info}
+            results_to_present["candidates"].append(candidate)
+
+        return results_to_present

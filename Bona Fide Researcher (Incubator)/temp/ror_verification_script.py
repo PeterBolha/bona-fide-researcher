@@ -467,11 +467,11 @@ def fetch_crossref_data(crossref_id):
         return None
 
 def find_org_associated_with_email(email: str, result_display_limit: int =
-None) -> None:
+None) -> dict:
     # Extract domain from email for DNS analysis
     email_domain = get_domain_from_email(email)
 
-    # Get initial DNS results for email domain only
+    # Get initial DNS results for the email domain only
     initial_dns_results = run_dns_analysis(email_domain)
 
     # Generate ROR queries
@@ -486,7 +486,7 @@ None) -> None:
     if not results:
         print("\nNo ROR results found")
         print_dns_analysis(initial_dns_results)
-        return
+        return {}
 
     print(f"\nFound {len(results)} potential organization matches")
 
@@ -566,6 +566,8 @@ None) -> None:
 
         print("\n" + "-" * 80)
 
+    return {"ror_scored_results": scored_results}
+
 def main():
     email = input("Enter the email address: ")
-    find_org_associated_with_email(email)
+    return find_org_associated_with_email(email)
