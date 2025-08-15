@@ -11,6 +11,7 @@ class Author(IMergeable["Author"], Rankable):
                  affiliations: Set[Institution] = None, emails: Set[str] = None,
                  orcid: str = "") -> None:
         super().__init__()
+        self._MAX_NAME_MATCH_RATIO = 200
         self.given_name = given_name
         self.given_name_alternatives = set()
 
@@ -37,6 +38,7 @@ class Author(IMergeable["Author"], Rankable):
 
         self.name_match_ratio = 0
         self.perfect_match_attrs_count = 0
+        self.rank_breakdown = {}
 
     def merge_with(self, other: "Author", debug_flag: bool = False) -> None:
         if not self.given_name and other.given_name:
@@ -100,38 +102,80 @@ class Author(IMergeable["Author"], Rankable):
     # TODO - reevaluate rank calculation & rank values
     def calculate_internal_rank(self, researcher: Researcher) -> float:
         self.internal_rank = 0
+        self.perfect_match_attrs_count = 0
 
+        self.rank_breakdown["affiliations"] = {"count": len(self.affiliations),
+                                               "perfect_match": 0
+                                               }
+        affiliations_cumulative_rank = 0
         for affiliation in self.affiliations:
-            self.internal_rank += affiliation.calculate_internal_rank(
+            affiliation_rank = affiliation.calculate_internal_rank(
                 researcher)
+            affiliations_cumulative_rank += affiliation_rank
             if affiliation.has_perfect_match:
                 self.perfect_match_attrs_count += 1
+                self.rank_breakdown["affiliations"]["perfect_match"] += 1
 
+        self.rank_breakdown["affiliations"]["cumulative_rank"] = affiliations_cumulative_rank
+
+        if len(self.affiliations) > 0:
+            self.rank_breakdown["affiliations"]["avg_rank_per_affiliation"] = (
+                round(affiliations_cumulative_rank / len(self.affiliations), 2))
+
+        self.internal_rank += affiliations_cumulative_rank
+
+        self.rank_breakdown["emails"] = {"count": len(self.emails),
+                                         "perfect_match": 0}
+        emails_cumulative_rank = 0
         for email in self.emails:
             if email == researcher.email:
                 self.perfect_match_attrs_count += 1
-                self.internal_rank += (
+                self.rank_breakdown["emails"]["perfect_match"] += 1
+                emails_cumulative_rank += (
                         self._email_rank_value_match_multiplier *
                         self._email_rank_value_match)
             else:
-                self.internal_rank += (
+                emails_cumulative_rank += (
                         self._email_rank_value_presence_multiplier *
                         self._email_rank_value_match)
 
+        self.rank_breakdown["emails"][
+            "cumulative_rank"] = emails_cumulative_rank
+
+        if len(self.emails) > 0:
+            self.rank_breakdown["emails"]["avg_rank_per_email"] = (
+                round(emails_cumulative_rank / len(self.emails), 2))
+
+        self.internal_rank += emails_cumulative_rank
+
         if self.orcid:
+            self.rank_breakdown["orcid"] = {"rank": 0, "perfect_match": 0}
+            orcid_rank = 0
             if self.orcid == researcher.orcid:
                 self.perfect_match_attrs_count += 1
-                self.internal_rank += (
+                self.rank_breakdown["orcid"]["perfect_match"] += 1
+                orcid_rank += (
                         self._orcid_rank_value_match_multiplier *
                         self._orcid_rank_value_match)
             else:
-                self.internal_rank += (
+                orcid_rank += (
                         self._orcid_rank_value_presence_multiplier *
                         self._orcid_rank_value_match)
 
+            self.rank_breakdown["orcid"]["rank"] = orcid_rank
+            self.internal_rank += orcid_rank
+
         self.internal_rank += self.name_match_ratio
 
-        if self.name_match_ratio == 200:
+        self.rank_breakdown["name"] = {"rank": round(self.name_match_ratio, 2),
+                                       "max_value": self._MAX_NAME_MATCH_RATIO,
+                                       "perfect_match": 0}
+        if self.name_match_ratio == self._MAX_NAME_MATCH_RATIO:
             self.perfect_match_attrs_count += 1
+            self.rank_breakdown["name"]["perfect_match"] += 1
 
+        self.rank_breakdown[
+            "attributes_with_perfect_match"] = self.perfect_match_attrs_count
+
+        self.rank_breakdown["cumulative_rank"] = round(self.internal_rank, 2)
         return self.internal_rank

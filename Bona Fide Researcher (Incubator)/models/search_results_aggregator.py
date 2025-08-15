@@ -121,7 +121,11 @@ class SearchResultsAggregator:
             articles_info = [article.to_dict() for article in info[
                 "articles"].values()]
             candidate = {"author": author.to_dict(),
-                         "articles": articles_info}
+                         "score_breakdown": {
+                             "author": author.rank_breakdown
+                         },
+                         "articles": articles_info
+                        }
             results_to_present["candidates"].append(candidate)
 
         return results_to_present
