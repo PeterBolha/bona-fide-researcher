@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 from email_validator import EmailNotValidError, validate_email
 
 from models.researcher import Researcher

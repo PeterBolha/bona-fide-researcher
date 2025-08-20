@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 from typing import List, Tuple
 
 from arxiv import Client, Result, Search, SortCriterion, SortOrder
