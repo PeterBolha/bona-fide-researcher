@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 from abc import ABC, abstractmethod
 
 from models.researcher import Researcher

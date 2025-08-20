@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 DELIMITER_LARGE_SIZE = 80
 DELIMITER_LARGE_CHAR = "≡"
 

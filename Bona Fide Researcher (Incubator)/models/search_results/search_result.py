@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 import abc
 
 from abstracts.rankable import Rankable

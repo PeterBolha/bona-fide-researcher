@@ -1,3 +1,11 @@
+"""
+      |
+  \  ___  /                           _________
+ _  /   \  _    GÉANT                 |  * *  | Co-Funded by
+    | ~ |       Trust & Identity      | *   * | the European
+     \_/        Incubator             |__*_*__| Union
+      =
+"""
 class Researcher:
     def __init__(self, given_name: str = None, surname: str = None, email: str = None, orcid: str = None, affiliation: str = None, has_uncertain_name_order: bool = False):
         self.given_name = given_name
