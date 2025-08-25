@@ -7,9 +7,9 @@
       =
 """
 from email_validator import EmailNotValidError, validate_email
+from ror_email_match.core.organization_finder import OrganizationFinder
 
 from models.researcher import Researcher
-from temp.ror_verification_script import find_org_associated_with_email
 from verification_modules.self_contained.self_contained_verification_module import \
     (SelfContainedVerificationModule)
 
@@ -37,8 +37,9 @@ class RorVerificationModule(SelfContainedVerificationModule):
             print(
                 f"Analyzing email domain '{researcher.email}' using "
                 f"{self.data_source_name}")
-            org_info = find_org_associated_with_email(validated.normalized,
-                                           self._RESULT_DISPLAY_LIMIT)
+            finder = OrganizationFinder()
+            org_info = finder.find_org_associated_with_email(
+                validated.normalized, self._RESULT_DISPLAY_LIMIT)
             print(
                 f"{self.data_source_name} researcher email domain "
                 f"verification was successful.\n"

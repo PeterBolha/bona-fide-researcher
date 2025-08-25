@@ -13,7 +13,7 @@ from http import HTTPStatus
 from typing import Tuple
 
 import requests
-from flask import Flask, Request, Response, current_app, g, jsonify
+from flask import Flask, Request, Response, g, jsonify
 
 from enums.job_status import JobStatus
 from enums.result_presentation_mode import ResultPresentationMode
