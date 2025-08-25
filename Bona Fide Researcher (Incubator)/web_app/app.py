@@ -73,14 +73,15 @@ def has_valid_params(request_params: dict) -> Tuple[bool, Response]:
     if limit_results is not None and limit_results < 1:
         return False, Response(f"Invalid 'limit_results' value: "
                                f"{limit_results}. The value should be an "
-                               f"integer "
-                               f"greater than 0.",
+                               f"integer greater than 0. Problematic request "
+                               f"part: {request_params}",
                                status=HTTPStatus.BAD_REQUEST)
 
     if not request_params.get("callback_url"):
         return False, Response(
             f"Missing 'callback_url' parameter. The search result is returned "
-            f"to the callback URL so it must be provided.",
+            f"to the callback URL so it must be provided. Problematic request "
+            f"part: {request_params}",
             status=HTTPStatus.BAD_REQUEST)
 
     placeholder_response = Response()
@@ -136,44 +137,60 @@ def verify_eduperson_endpoint():
     # successful
     request_params = g.jwt_payload
 
-    valid_params, response = has_valid_params(request_params)
-    if not valid_params:
-        return response
+    researcher_requests = request_params.get("researchers")
+    # presume there is just a single researcher instead of a list
+    if not researcher_requests:
+        researcher_requests = [request_params]
 
-    namespace_args = Namespace(
-        given_name=request_params.get("given_name"),
-        surname=request_params.get("surname"),
-        email=request_params.get("email"),
-        orcid=request_params.get("orcid"),
-        affiliation=request_params.get("affiliation"),
-        uncertain_name_order=request_params.get("uncertain_name_order"),
-        verbose=request_params.get("verbose"),
-        verify_email_domain=request_params.get("verify_email_domain"),
-        limit_results=request_params.get("limit_results"),
-    )
-
-    callback_url = request_params.get("callback_url")
     jobs = app.jobs
-    job_id = start_background_job(jobs,
-                                  verify_eduperson,
-                                  args=(namespace_args,
-                                        ResultPresentationMode.API),
-                                  callback_url=callback_url)
+    job_responses = []
 
-    return (jsonify({"job_id": job_id, "status": JobStatus.RUNNING.name,
-                     "message": f"Your job has been submitted and assigned an "
-                                f"ID: {job_id}. Please wait for the response "
-                                f"on the callback URL: {callback_url}. You "
-                                f"can track the progress of the job by "
-                                f"calling the status endpoint: "
-                                f"/status/<job_id>"}),
-            HTTPStatus.ACCEPTED)
+    for researcher_request in researcher_requests:
+        valid_params, response = has_valid_params(researcher_request)
+        if not valid_params:
+            return response
+
+        namespace_args = Namespace(
+            given_name=researcher_request.get("given_name"),
+            surname=researcher_request.get("surname"),
+            email=researcher_request.get("email"),
+            orcid=researcher_request.get("orcid"),
+            affiliation=researcher_request.get("affiliation"),
+            uncertain_name_order=researcher_request.get("uncertain_name_order",
+                                                    False),
+            verbose=researcher_request.get("verbose", False),
+            verify_email_domain=researcher_request.get("verify_email_domain",
+                                                   False),
+            limit_results=researcher_request.get("limit_results", 10),
+        )
+
+        callback_url = researcher_request.get("callback_url")
+        job_id = start_background_job(jobs,
+                                      verify_eduperson,
+                                      args=(namespace_args,
+                                            ResultPresentationMode.API),
+                                      callback_url=callback_url)
+        researcher_name = (f"{researcher_request.get("given_name", '')} "
+                           f"{researcher_request.get('surname', '')}")
+        job_responses.append({"job_id": job_id,
+                              "researcher_name": researcher_name,
+                              "status": JobStatus.RUNNING.name,
+                              "message": (f"Your job has been submitted and "
+                                          f"assigned an ID: {job_id}. Please "
+                                          f"wait for the response "
+                                          f"on the callback URL: "
+                                          f"{callback_url}. You can track the "
+                                          f"progress of the job by calling "
+                                          f"the status endpoint:  "
+                                          f"/status/<job_id>")})
+
+    return jsonify(job_responses), HTTPStatus.ACCEPTED
 
 
 @app.route("/status/<job_id>")
 def get_job_status(job_id: str):
     job_status_data = app.jobs.get(job_id,
-                                           {"status": JobStatus.NOT_FOUND.name})
+                                   {"status": JobStatus.NOT_FOUND.name})
     return jsonify(job_status_data)
 
 
