@@ -17,6 +17,7 @@ from flask import Flask, Request, Response, g, jsonify
 
 from enums.job_status import JobStatus
 from enums.result_presentation_mode import ResultPresentationMode
+from researcher_relationship_graph import get_researcher_relationship_graph_data
 from utils.config_loader import load_config
 from verify_eduperson import verify_eduperson
 from web_app.jwt_auth import check_jwt_auth
@@ -130,50 +131,20 @@ def start_background_job(jobs, func, args=None, kwargs=None, callback_url=None):
     return job_id
 
 
-@app.route("/verify-eduperson", methods=["GET"])
-@check_jwt_auth
-def verify_eduperson_endpoint():
-    # g is filled with jwt data by the check_jwt_auth decorator if auth is
-    # successful
-    request_params = g.jwt_payload
-
-    researcher_requests = request_params.get("researchers")
-    # presume there is just a single researcher instead of a list
-    if not researcher_requests:
-        researcher_requests = [request_params]
-
+def start_background_jobs(func, namespace_args_list: list[Namespace]) -> (
+        tuple)[Response, HTTPStatus]:
     jobs = app.jobs
     job_responses = []
 
-    for researcher_request in researcher_requests:
-        valid_params, response = has_valid_params(researcher_request)
-        if not valid_params:
-            return response
-
-        namespace_args = Namespace(
-            given_name=researcher_request.get("given_name"),
-            surname=researcher_request.get("surname"),
-            email=researcher_request.get("email"),
-            orcid=researcher_request.get("orcid"),
-            affiliation=researcher_request.get("affiliation"),
-            uncertain_name_order=researcher_request.get("uncertain_name_order",
-                                                    False),
-            verbose=researcher_request.get("verbose", False),
-            verify_email_domain=researcher_request.get("verify_email_domain",
-                                                   False),
-            limit_results=researcher_request.get("limit_results", 10),
-        )
-
-        callback_url = researcher_request.get("callback_url")
+    for namespace_args in namespace_args_list:
+        callback_url = namespace_args.callback_url
         job_id = start_background_job(jobs,
-                                      verify_eduperson,
+                                      func,
                                       args=(namespace_args,
                                             ResultPresentationMode.API),
                                       callback_url=callback_url)
-        researcher_name = (f"{researcher_request.get("given_name", '')} "
-                           f"{researcher_request.get('surname', '')}")
         job_responses.append({"job_id": job_id,
-                              "researcher_name": researcher_name,
+                              "researcher_name": namespace_args.full_name,
                               "status": JobStatus.RUNNING.name,
                               "message": (f"Your job has been submitted and "
                                           f"assigned an ID: {job_id}. Please "
@@ -187,11 +158,81 @@ def verify_eduperson_endpoint():
     return jsonify(job_responses), HTTPStatus.ACCEPTED
 
 
+def get_normalized_researcher_request():
+    # g is filled with jwt data by the check_jwt_auth decorator if auth is
+    # successful
+    request_params = g.jwt_payload
+
+    researcher_requests = request_params.get("researchers")
+    # presume there is just a single researcher instead of a list
+    if not researcher_requests:
+        researcher_requests = [request_params]
+
+    return researcher_requests
+
+@app.route("/verify-eduperson", methods=["GET"])
+@check_jwt_auth
+def verify_eduperson_endpoint():
+    namespace_args_list = []
+    researcher_requests = get_normalized_researcher_request()
+
+    for researcher_request in researcher_requests:
+        valid_params, response = has_valid_params(researcher_request)
+        if not valid_params:
+            return response
+
+        full_name = (researcher_request.get("given_name", "") + " " +
+                     researcher_request.get("surname", ""))
+        namespace_args = Namespace(
+            given_name=researcher_request.get("given_name"),
+            surname=researcher_request.get("surname"),
+            full_name=full_name,
+            email=researcher_request.get("email"),
+            orcid=researcher_request.get("orcid"),
+            affiliation=researcher_request.get("affiliation"),
+            uncertain_name_order=researcher_request.get("uncertain_name_order",
+                                                    False),
+            verbose=researcher_request.get("verbose", False),
+            verify_email_domain=researcher_request.get("verify_email_domain",
+                                                   False),
+            limit_results=researcher_request.get("limit_results", 10),
+            callback_url = researcher_request.get("callback_url")
+        )
+
+        namespace_args_list.append(namespace_args)
+
+    return start_background_jobs(verify_eduperson, namespace_args_list)
+
+
 @app.route("/status/<job_id>")
 def get_job_status(job_id: str):
     job_status_data = app.jobs.get(job_id,
                                    {"status": JobStatus.NOT_FOUND.name})
     return jsonify(job_status_data)
+
+@app.route("/researcher-relationship-graph")
+@check_jwt_auth
+def get_researcher_relationship_graph():
+    namespace_args_list = []
+    researcher_requests = get_normalized_researcher_request()
+
+    for researcher_request in researcher_requests:
+        valid_params, response = has_valid_params(researcher_request)
+        if not valid_params:
+            return response
+
+        full_name = researcher_request.get("full_name")
+        namespace_args = Namespace(
+            full_name=full_name,
+            max_relationship_depth=researcher_request.get(
+                "max_relationship_depth", 3),
+            callback_url=researcher_request.get("callback_url")
+        )
+
+        namespace_args_list.append(namespace_args)
+
+    return start_background_jobs(get_researcher_relationship_graph_data,
+                                 namespace_args_list)
 
 
 if __name__ == "__main__":
