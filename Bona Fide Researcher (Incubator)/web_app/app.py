@@ -21,6 +21,7 @@ from researcher_relationship_graph import get_researcher_relationship_graph_data
 from utils.config_loader import load_config
 from verify_eduperson import verify_eduperson
 from web_app.jwt_auth import check_jwt_auth
+from flask_cors import CORS
 
 APP_CFG_FILEPATH = "./configs/config.yaml"
 
@@ -28,6 +29,7 @@ app_config = load_config(APP_CFG_FILEPATH)
 app = Flask(__name__)
 app.config.update(app_config)
 app.jobs = {}
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 @app.route("/")
