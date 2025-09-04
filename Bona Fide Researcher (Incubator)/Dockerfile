@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install Python dependencies
 COPY requirements.txt .
+
+# Install packages from Test PyPI
+RUN pip install --upgrade ror-email-match arxiv-graph-generator \
+--index-url https://test.pypi.org/simple/ \
+--extra-index-url https://pypi.org/simple
+
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
