@@ -47,8 +47,7 @@ def print_args_overview(args):
 
     print_delimiter_large()
 
-
-def get_args_from_cli() -> Namespace:
+def get_args_parser() -> ArgumentParser:
     parser = ArgumentParser(
         description='Verify eduperson based on the input data.')
 
@@ -80,7 +79,11 @@ def get_args_from_cli() -> Namespace:
     parser.add_argument("-d", "--verify-email-domain", action="store_true",
                         help="When present, email domain will be verified "
                              "through ROR. Email must be provided.")
+    return parser
 
+
+def get_args_from_cli() -> Namespace:
+    parser = get_args_parser()
     return parser.parse_args()
 
 
