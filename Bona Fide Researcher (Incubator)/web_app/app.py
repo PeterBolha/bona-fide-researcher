@@ -26,6 +26,8 @@ from flask_cors import CORS
 APP_CFG_FILEPATH = "./configs/config.yaml"
 
 app_config = load_config(APP_CFG_FILEPATH)
+MAX_RELATIONSHIP_DEPTH = app_config.get("max_relationship_depth_default")
+
 app = Flask(__name__)
 app.config.update(app_config)
 app.jobs = {}
@@ -76,6 +78,15 @@ def has_valid_params(request_params: dict) -> Tuple[bool, Response]:
     if limit_results is not None and limit_results < 1:
         return False, Response(f"Invalid 'limit_results' value: "
                                f"{limit_results}. The value should be an "
+                               f"integer greater than 0. Problematic request "
+                               f"part: {request_params}",
+                               status=HTTPStatus.BAD_REQUEST)
+
+    max_relationship_depth = request_params.get("max_relationship_depth")
+
+    if max_relationship_depth is not None and max_relationship_depth < 1:
+        return False, Response(f"Invalid 'max_relationship_depth' value: "
+                               f"{max_relationship_depth}. The value should be an "
                                f"integer greater than 0. Problematic request "
                                f"part: {request_params}",
                                status=HTTPStatus.BAD_REQUEST)
@@ -222,12 +233,11 @@ def get_researcher_relationship_graph():
         valid_params, response = has_valid_params(researcher_request)
         if not valid_params:
             return response
-
         full_name = researcher_request.get("full_name")
         namespace_args = Namespace(
             full_name=full_name,
             max_relationship_depth=researcher_request.get(
-                "max_relationship_depth", 3),
+                "max_relationship_depth", MAX_RELATIONSHIP_DEPTH),
             callback_url=researcher_request.get("callback_url")
         )
 
