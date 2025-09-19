@@ -54,9 +54,11 @@ def get_args_from_cli() -> Namespace:
 
     # arguments
     parser.add_argument("-gn", "--given-name", type=str,
-                        help="Given name of the person to be verified")
+                        help="Given name of the person to be verified",
+                        required=True)
     parser.add_argument("-sn", "--surname", type=str,
-                        help="Surname of the person to be verified")
+                        help="Surname of the person to be verified",
+                        required=True)
     parser.add_argument("-e", "--email", type=str,
                         help="Email address of the person to be verified")
     parser.add_argument("-o", "--orcid", type=str,
@@ -80,6 +82,7 @@ def get_args_from_cli() -> Namespace:
                              "through ROR. Email must be provided.")
 
     return parser.parse_args()
+
 
 def verify_eduperson(args: Namespace = None, presentation_mode:
 ResultPresentationMode = ResultPresentationMode.CLI):
